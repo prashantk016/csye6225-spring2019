@@ -101,8 +101,8 @@
                   "ToPort":"8080",
                   "CidrIp":"0.0.0.0/0"
                }
-            ], 
-            
+            ],
+
             "VpcId":{
                "Fn::ImportValue":"csye6225-cf-vpc"
             }
@@ -136,7 +136,7 @@
       "asglaunchconfig":{
          "Type":"AWS::AutoScaling::LaunchConfiguration",
          "Properties":{
-            
+
             "ImageId":{
                "Ref":"amiId"
             },
@@ -147,7 +147,7 @@
             "IamInstanceProfile" : {
                "Fn::ImportValue":"CodeDeployEC2InstanceProfile"
             },
-            
+
             "BlockDeviceMappings":[
                {
                   "DeviceName":"/dev/sda1",
@@ -175,14 +175,26 @@
                            "Fn::Join":[
                               "",
                               [
-                                 "echo 'JAVA_OPTS=\"$JAVA_OPTS -Dspring.datasource.url=\"jdbc:mysql://",
+                                 "echo 'JAVA_OPTS=\"$JAVA_OPTS -Dspring.datasource.url=jdbc:mysql://",
                                  {
                                     "Fn::GetAtt":[
                                        "RDSDB",
                                        "Endpoint.Address"
                                     ]
                                  },
-                                 ":3306/csye6225\"\"'>> /opt/tomcat/bin/setenv.sh \n"
+                                 ":3306/csye6225\"'>> /opt/tomcat/bin/setenv.sh \n"
+                              ]
+                           ]
+                        },
+                        {
+                           "Fn::Join":[
+                              "",
+                              [
+                                 "sudo echo 'JAVA_OPTS=\"$JAVA_OPTS -Dbucket.name=",
+                                 {
+                                    "Ref":"s3Bucket"
+                                 },
+                                 "\"' >> /opt/tomcat/bin/setenv.sh\n"
                               ]
                            ]
                         },
@@ -217,19 +229,7 @@
                                  "\"' >> /opt/tomcat/bin/setenv.sh\n"
                               ]
                            ]
-                        },
-                        {
-                           "Fn::Join":[
-                              "",
-                              [
-                                 "sudo echo 'JAVA_OPTS=\"$JAVA_OPTS -Dbucket.name=",
-                                 {
-                                    "Ref":"s3Bucket"
-                                 },
-                                 "\"' >> /opt/tomcat/bin/setenv.sh\n"
-                              ]
-                           ]
-                        },
+                        }
                         "chmod +x /opt/tomcat/bin/setenv.sh",
                         "systemctl enable tomcat.service",
                         "systemctl start tomcat.service"
@@ -240,7 +240,7 @@
             "LaunchConfigurationName" : "asg_launch_config",
             "AssociatePublicIpAddress":true
          }
-        
+
       },
 
       "WebServerGroup":{
@@ -317,7 +317,7 @@
            "Unit":"Percent"
          }
        },
-       
+
        "CPUAlarmLow": {
          "Type": "AWS::CloudWatch::Alarm",
          "Properties": {
@@ -344,12 +344,12 @@
            "ComparisonOperator": "LessThanThreshold",
            "Unit":"Percent"
          }
-       }, 
+       },
 
        "ApplicationLoadBalancer" : {
          "Type" : "AWS::ElasticLoadBalancingV2::LoadBalancer",
-         "Properties" : 
-           {    
+         "Properties" :
+           {
              "IpAddressType" : "ipv4",
              "SecurityGroups" : [ {"Ref":"loadbalancerSecurityGroup"} ],
              "Subnets" :[{"Fn::ImportValue":"csye6225-cf-websubnet1"}, {"Fn::ImportValue":"csye6225-cf-dbsubnet1"}],
@@ -361,7 +361,7 @@
            } ],
              "Type" : "application"
            }
-         
+
        },
 
        "ALBListenerService": {
@@ -375,9 +375,9 @@
            "LoadBalancerArn" : { "Ref" : "ApplicationLoadBalancer" },
            "Port" : "443",
            "Protocol" : "HTTPS",
-           "Certificates" : [ 
+           "Certificates" : [
              { "CertificateArn" :
-               { 
+               {
                   "Ref" : "certificateARN"
                }
            }
@@ -402,10 +402,10 @@
            "LoadBalancerArn" : { "Ref" : "ApplicationLoadBalancer" },
            "Port" : "8080",
            "Protocol" : "HTTP"
-           
+
          }
        },
-      
+
    "ALBTargetGroup":{
      "Type" : "AWS::ElasticLoadBalancingV2::TargetGroup",
      "Properties" : {
@@ -436,11 +436,11 @@
          "HostedZoneId" : {"Ref":"hostedZoneID"},
          "Name" :  {"Ref":"domainName"},
          "Type" : "A"
-         
+
             }
       },
 
-   
+
       "DynamoDBTable":{
          "Type":"AWS::DynamoDB::Table",
          "Properties":{
@@ -470,7 +470,7 @@
                   "Key":"Name",
                   "Value":"csye6225DynamoDB"
                }
-            ] 
+            ]
          }
       },
       "RDSDB":{
@@ -522,16 +522,16 @@
                ]
             },
             "DeploymentConfigName":"CodeDeployDefault.AllAtOnce",
-            
+
             "ServiceRoleArn":{
                "Fn::ImportValue":"CodeDeployServiceRoleOutput"
             },
             "AutoScalingGroups":[{"Ref":"WebServerGroup"}],
             "LoadBalancerInfo" : {
-               "TargetGroupInfoList" : [ 
-                  { 
-                     "Name": { "Fn::GetAtt": ["ALBTargetGroup", "TargetGroupName"] } 
-                  } 
+               "TargetGroupInfoList" : [
+                  {
+                     "Name": { "Fn::GetAtt": ["ALBTargetGroup", "TargetGroupName"] }
+                  }
                ]
            }
          }
