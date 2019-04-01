@@ -151,14 +151,14 @@
                            "Fn::Join":[
                               "",
                               [
-                                 "echo 'JAVA_OPTS=\"$JAVA_OPTS -Dspring.datasource.url=\"jdbc:mysql://",
+                                 "echo 'JAVA_OPTS=\"$JAVA_OPTS -Dspring.datasource.url=jdbc:mysql://",
                                  {
                                     "Fn::GetAtt":[
                                        "RDSDB",
                                        "Endpoint.Address"
                                     ]
                                  },
-                                 ":3306/csye6225?autoReconnect=true&useSSL=false\"\"'>> /opt/tomcat/bin/setenv.sh \n"
+                                 ":3306/csye6225\"'>> /opt/tomcat/bin/setenv.sh \n"
                               ]
                            ]
                         },
